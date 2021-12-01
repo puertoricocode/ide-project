@@ -20,7 +20,7 @@
 	"activationCommands": {
 
 	},
-	"repository": "https://github.com/ctkjose/ide-project",
+	"repository": "https://github.com/puertoricocode/ide-project",
 	"license": "MIT",
 	"engines": {
 		"atom": ">=1.0.0 <2.0.0"
