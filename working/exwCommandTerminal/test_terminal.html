@@ -1,0 +1,78 @@
+<html>
+<head>
+	<style>
+
+	</style>
+
+</head>
+<body>
+
+
+<div id='target1'></div>
+
+
+
+<script src="../lib/exwCommandTerminal.js"></script>
+
+
+
+<script>
+
+var term = new exwCommandTerminal({
+	targetSelector: '#target1',
+	commandPreflight: function(term, cmd){
+			cmd.params.push('nk','jose');
+			return true;
+	},
+});
+
+
+
+
+
+
+term.focus();
+term.j1 = true;
+term.commandRegistry.add('version', function(term, args){
+	console.log(this);
+	this.terminal.write("Verion 1.0\n\tBy \u001b[34mExponential\u001b[32;1mWorks ");
+	this.terminal.write("Test \u001b[4mUnderline \u001b[4;9;3mINVALID\u001b[0;4m test");
+	this.terminal.write("Blink \u001b[36;5m HELLO \u001b[0m Done");
+});
+term.commandRegistry.add('php', {
+	prompt: 'PHP',
+	promptSeparator: ':',
+	v: "Jose",
+	run: function(args){
+		this.terminal.write("Verion 1.0");
+
+		this.terminal.captureInput('Enter Name: ').then((input) => {
+			this.terminal.write('Hi, Your name is ' + input + '!');
+		}, ()=>{
+			this.terminal.write('Ok, no need to be rude!');
+		});
+	},
+	onExit: function(input){
+		this.terminal.write('Bye...');
+		console.log('PHP cleaning up...');
+	},
+	onInput: function(input){
+		if(input == 'quit'){
+			this.done();
+		}
+
+		console.log(this);
+		term.write("Hello " + this.v);
+		//term.write(input);
+
+
+	},
+
+});
+
+
+//document.querySelector('#target1').appendChild(term.getElement());
+
+</script>
+</body>
+</html>

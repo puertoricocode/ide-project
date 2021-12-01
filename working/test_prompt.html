@@ -1,0 +1,219 @@
+<!DOCTYPE html><html><head>
+<style>
+body {
+	font-family: monospace;
+}
+::-moz-selection { /* Code for Firefox */
+  color: red;
+  background: yellow;
+}
+
+::selection {
+  color: red;
+  background: yellow;
+}
+
+.command-prompt {
+	width: 400px;
+	line-height: 20px;
+    font-size: 16px;
+	background-color: #000;
+}
+.command-prompt i {
+	line-height: 20px;
+    font-size: 16px;
+
+	color: #fff;
+	font-style: normal;
+    font-family: monospace;
+}
+.command-prompt i.s,
+.command-prompt i.s1,
+.command-prompt i.s2 {
+	background-color: RGBA(96,148,233,1);
+}
+.command-prompt i.c {
+	animation: cursor_blink 1s infinite;
+	background-color: rgba(255,255,255,.5);
+}
+
+@keyframes cursor_blink {
+	0% {
+		background-color:  rgba(255,255,255,.5);
+	}
+	30% {
+		background-color:  rgba(255,255,255,.5);
+	}
+	60% {
+		background-color:  rgba(255,255,255,.5);
+	}
+	61% {
+		background-color: rgba(0,0,0,0);
+	}
+	100% {
+		background-color: rgba(0,0,0,0);
+	}
+}
+</style>
+</head>
+<body contenteditable="false">
+
+<h1>Select some text on this page:</h1>
+
+
+<textarea id="t" autocapitalize="none" autocomplete="off" autocorrect="off" autofocus="true" spellcheck="false" rows="1" cols="30">Hello Jose was here!</textarea>
+<div class="command-prompt"></div>
+
+<p><strong>Note:</strong> ::selection is not supported in Internet Explorer 8 and earlier versions.</p>
+<p><strong>Note:</strong> Firefox supports an alternative, the ::-moz-selection property.</p>
+
+<script>
+var _term = {
+	syncDisplayCursor: function(){
+    	let sel = document.getSelection();
+		if(sel.rangeCount === 0) return;
+        let range = sel.getRangeAt(0);
+        console.log(range);
+        var s1 = range.startOffset;
+		var s2 = range.endOffset;
+        console.log('S=%d, E=%d', s1,s2);
+
+
+    }
+}
+_term.txt = document.querySelector("#t");
+_term.commandNode = document.querySelector(".command-prompt");
+
+_term.syncText = function(){
+	let s = this.txt.value;
+	this.commandNode.innerHTML = '';
+
+
+    var s1 = this.txt.selectionStart;
+	var s2 = this.txt.selectionEnd;
+	console.log('S=%d, E=%d', s1,s2);
+
+    let span = document.createElement('i');
+
+
+	for (var i = 0; i < s.length; i++) {
+
+		let co = span.cloneNode();
+        co.textContent = s.charAt(i);
+		co.__idx = i;
+        if(s1 == s2 && i == s1){
+        	co.classList.add('c');
+        }else if(s1 == i){
+        	co.classList.add('s1');
+        }else if(s2 == i){
+        	co.classList.add('s2');
+		}else if(i >= s1 && i <= s2){
+        	co.classList.add('s');
+		}
+
+        this.commandNode.appendChild(co);
+
+    }
+};
+_term.syncDisplayCursor = function(){
+	var s1 = this.txt.selectionStart;
+	var s2 = this.txt.selectionEnd;
+	console.log('S=%d, E=%d', s1,s2);
+
+	let chars = this.commandNode.querySelectorAll('i');
+	for(var i=0; i<chars.length; i++){
+		let co = chars[i];
+
+		co.classList.remove('c', 's', 's1', 's2');
+        if(s1 == s2 && i == s1){
+        	co.classList.add('c');
+        }else if(s1 == i){
+        	co.classList.add('s1');
+        }else if(s2 == i){
+        	co.classList.add('s2', 'c');
+		}else if(i >= s1 && i <= s2){
+        	co.classList.add('s');
+		}
+	}
+};
+_term.txt.addEventListener('input',function(event){
+	_term.syncText();
+});
+_term.txt.addEventListener('keyup',function(event){
+	let keyCode = event.code;
+	if(keyCode == 'ArrowLeft' || keyCode == 'ArrowRight'){
+		_term.syncDisplayCursor();
+		return;
+		let d = (keyCode == 'ArrowLeft') ? -1 : 1;
+		let s1 = this.txt.selectionStart;
+		let s2 = this.txt.selectionEnd;
+		let l = this.txt.value.length;
+
+		console.log(' Arrows S=%d, E=%d', s1,s2);
+		if(!event.shiftKey){
+			s1 = (d) ? Math.min(l,s1+d) : Math.max(0,s1+d);
+			s2 = s1;
+		}else{
+			s2 = (d) ? Math.min(l,s1+d) : Math.max(0,s1+d);
+			if(s2 < s1){
+				d = s2; s2 = s1; s1 = s2;
+			}
+		}
+
+		_term.txt.selectionStart = s1;
+		_term.txt.selectionEnd = s2;
+		_term.syncDisplayCursor();
+	}
+});
+
+_term.cs = {
+	mouseDown: false,
+	mouseMoved: false,
+	firstCh: null,
+};
+_term.commandNode.addEventListener('mousedown',function(event){
+	_term.cs.mouseDown = true;
+	_term.cs.mouseMove = false;
+	_term.cs.firstCh = null;
+
+	let co = event.target;
+	if(co.nodeName != 'I') return;
+	_term.cs.firstCh = co;
+});
+
+_term.commandNode.addEventListener('mousemove',function(event){
+
+	if(_term.cs.mouseDown){
+		_term.cs.mouseMove = true;
+	}
+
+});
+
+_term.commandNode.addEventListener('mouseup',function(event){
+	let co = event.target;
+	console.log('char=%s %o',co.nodeName,  co);
+	if(co.nodeName != 'I') return;
+
+	let s1, s2, dif = -1;
+	s1 = s2 = co.__idx
+	if(_term.cs.mouseMove){
+		let dif = _term.cs.firstCh.__idx - co.__idx;
+		if(dif != 0){
+			s2 = Math.max(co.__idx, _term.cs.firstCh.__idx);
+			s1 = Math.min(co.__idx, _term.cs.firstCh.__idx);
+		}
+	}
+
+	_term.txt.selectionStart = s1;
+	_term.txt.selectionEnd = s2;
+	_term.syncDisplayCursor();
+
+	_term.cs.mouseDown = true;
+	_term.cs.mouseMove = false;
+	_term.cs.firstCh = null;
+});
+
+</script>
+
+
+</body></html>

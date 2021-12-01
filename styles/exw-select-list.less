@@ -1,0 +1,59 @@
+@import "ui-variables";
+@import "octicon-mixins";
+
+
+.exw-select-list {
+
+	.loading {
+		.loading-message {
+			.octicon(hourglass);
+
+			&:before {
+				font-size: 1.1em;
+				width: 1.1em;
+				height: 1.1em;
+				margin-right: 5px;
+			}
+		}
+
+		.badge {
+			margin-left: 10px;
+		}
+	}
+
+	ol.list-group {
+		position: relative;
+		overflow-y: auto;
+		max-height: 312px;
+		margin: @component-padding 0 0 0;
+		padding: 0;
+
+		li {
+			display: block;
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			
+			.primary-line,
+			.secondary-line {
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				overflow: hidden;
+
+
+			}
+
+			.icon.with-image:before {
+				top: initial;
+				line-height: inherit;
+				vertical-align: middle;
+				width: 16px;
+				height: 16px;
+				display: inline-block;
+				margin-right: 6px;
+				content: "";
+			}
+		}
+	}
+
+}

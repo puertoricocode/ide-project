@@ -1,0 +1,28 @@
+{
+	"context-menu": {
+    	"atom-text-editor": [
+	      	{"label": "Toggle Bookmark","command": "exw-ide:toggle-bookmark"}
+    	]
+	},
+	"menu": [
+		{ "label": "Project", "submenu": [
+			{"label": "Open Project...","command": "exw-ide:open-project"},
+			{"label": "Save Project...","command": "exw-ide:save-project"},
+			{"label": "Show open files...","command": "exw-ide:show-open-tabs"},
+			{"label":"Show Explorer...", "command": "exw-ide:show-explorer"},
+			{"label": "Show Commando...","command": "exw-ide:show-commando"},
+			{"label": "Show Symbols...","command": "exw-ide:show-symbols"}
+		] },
+		{ "label": "Packages", "submenu": [
+			{ "label": "EXW IDE", "submenu": [
+				{"label": "Toogle Explorer","command": "exw-ide:show-explorer"},
+				{"label": "Toogle Commando","command": "exw-ide:show-commando"},
+				{"label": "Show open tabs...","command": "exw-ide:show-open-tabs"},
+				{"label": "Open Project...","command": "exw-ide:open-project"},
+				{"label": "Save Project...","command": "exw-ide:save-project"},
+				{"label": "Edit symbol's grammer", "command": "exw-ide:edit-sym-grammer"},
+				{"label": "Edit config file", "command": "exw-ide:edit-config-file"}
+			]}
+		]}
+	]
+}

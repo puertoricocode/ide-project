@@ -1,0 +1,38 @@
+{
+	"name": "ide-project",
+	"description": "EXW IDE Projects adds makes working with projects nicers!",
+	"main": "./lib/ide-project",
+	"version": "0.0.1",
+	"description": "IDE helpers for web development with PHP-JS-HTML",
+	"keywords": [
+		"symbols",
+		"nst",
+		"tree",
+		"tagbar",
+		"taglist",
+		"treeview",
+		"php",
+		"css"
+	],
+	"deserializers": {
+		"prjPanelRestore": "prjPanelRestore"
+	},
+	"activationCommands": {
+		"atom-workspace": "exw-ide:show-explorer"
+	},
+	"repository": "https://github.com/atom/ide-project",
+	"license": "MIT",
+	"engines": {
+		"atom": ">=1.0.0 <2.0.0"
+	},
+	"dependencies": {
+	},
+	"consumedServices": {
+		"console": {
+			"versions": { ">=0.1.0": "consumeConsole"}
+		},
+		"atom-ide-busy-signal": {
+		    "versions": { "*": "consumeSignal"}
+  		}
+	}
+}

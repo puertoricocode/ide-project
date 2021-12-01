@@ -1,0 +1,629 @@
+<html>
+<head>
+	<style>
+	.exw-terminal {
+		height: 400px;
+		width: 500px;
+
+		display: flex;
+		flex-direction: column;
+
+		background-color: #222425;
+		color: white;
+
+		font-family: "Inconsolata", "Courier New", Courier, monospace;
+		font-weight: 200;
+		font-size: 12px;
+
+		overflow: hidden;
+		padding: 6px 6px;
+		position: relative;
+		box-sizing: border-box;
+	}
+	.exw-terminal-container {
+		box-sizing: border-box;
+		margin-top: 2px;
+		flex-grow: 1;
+		flex-shrink: 1;
+
+		display: flex;
+		flex-direction: column;
+
+		overflow-y: hidden;
+
+	}
+	.exw-terminal-footer {
+		box-sizing: border-box;
+		align-self: flex-end;
+
+		flex-grow: 0;
+		line-height: 28px;
+
+		display: flex;
+		flex-direction: row;
+
+		width: 100%;
+		padding-left: 2px;
+		padding-right: 2px;
+
+		margin-top: auto;
+	}
+	.exw-terminal-msg {
+		flex-grow: 1;
+		line-height: 28px;
+	}
+	.exw-terminal-busy {
+		flex-grow: 0;
+		line-height: 28px;
+		width: 28px;
+		margin-left: 6px;
+		display: none;
+	}
+	.exw-terminal.isBusy .exw-terminal-busy {
+		display: block;
+	}
+	.exw-terminal-busy svg {
+		stroke: #E3C091;
+		width: 28px;
+		height: 28px;
+	}
+
+	.exw-terminal-buffer {
+		order: 1;
+		width: 100%;
+		overflow-x: auto;
+		overflow-y: auto;
+		scroll-snap-type: y mandatory;
+	}
+	.exw-terminal-buffer::-webkit-scrollbar {
+		height: 0;
+		width: 0;
+		background: transparent;
+	}
+	.exw-terminal-buffer::selection {
+		background-color: #f3e5ab;
+		text-shadow: none !important;
+	}
+
+	/*firefox scrollbar*/
+	.exw-terminal-buffer {
+		scrollbar-width: thin;
+		scrollbar-color: rgba(92, 92, 92, 0.5) #222425;
+	}
+	.exw-terminal-buffer::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	.exw-terminal-buffer::-webkit-scrollbar-track,
+	.exw-terminal-buffer::-webkit-scrollbar-corner {
+		background: #222425;
+	}
+	.exw-terminal-buffer::-webkit-scrollbar-thumb {
+		border: 2px solid 222425;
+		background: rgba(92, 92, 92, 0.5);
+		border-radius: 5px;
+		box-shadow: 0 0 1px black inset;
+	 }
+	.exw-terminal-buffer .std-out {
+		line-height: 20px;
+		min-height: 20px;
+		font-size: 16px;
+		white-space: nowrap;
+
+		overflow-x: scroll;
+		scrollbar-width: none;
+	}
+	.exw-terminal-buffer .std-out::-webkit-scrollbar {
+		height: 0;
+		background: transparent;
+	}
+	.exw-terminal-buffer .std-out .std-out-prompt {
+		margin-right: 6px;
+	}
+	.exw-terminal.blinkOn .exw-terminal-buffer .std-out span.f-blink-y {
+		color: inherit;
+		-webkit-filter: invert(100%);
+		filter: invert(100%);
+	}
+	.exw-terminal.blinkOn .exw-terminal-buffer .std-out span.f-blink-n {
+		color: inherit;
+		-webkit-filter: none;
+		filter: none;
+	}
+	.exw-terminal-buffer .std-out span.f-b-y {
+		font-weight: bold;
+	}
+	.exw-terminal-buffer .std-out span.f-b-n {
+		font-weight: normal;
+	}
+	.exw-terminal-buffer .std-out span.f-i-y {
+		font-style: italic;
+	}
+	.exw-terminal-buffer .std-out span.f-i-n {
+		font-style: normal;
+	}
+
+	.exw-terminal-buffer .std-out span.f-td-u.f-td-st {
+		text-decoration: underline line-through;
+	}
+	.exw-terminal-buffer .std-out span.f-td-u:not(.f-td-st) {
+		text-decoration: underline;
+	}
+	.exw-terminal-buffer .std-out span.f-td-st:not(.f-td-u) {
+		text-decoration: line-through;
+	}
+	.exw-terminal-buffer .std-out span:not(.f-td-u):not(.f-td-st) {
+		text-decoration: none;
+	}
+
+	.exw-terminal-prompt {
+		box-sizing: border-box;
+		position: relative;
+		order: 2;
+
+		flex-grow: 0;
+
+		width: 100%;
+	}
+	.exw-helper-textarea {
+		position: absolute;
+		opacity: 1;
+		left1: -9999em;
+		right: 400px;
+		top: 0;
+		width1: 0;
+		height2: 0;
+		z-index: -10;
+		white-space: nowrap;
+		overflow: hidden;
+		resize: none;
+	}
+	.exw-terminal-prompt .prompt {
+		box-sizing: border-box;
+		line-height: 20px;
+		font-size: 16px;
+
+		color: #f3e5ab;
+		font-weight: bold;
+		flex-grow: 0;
+		margin-right: 6px;
+	}
+	.exw-terminal-prompt .command-input {
+		box-sizing: border-box;
+		line-height: 20px;
+		font-size: 16px;
+
+		flex-grow: 0;
+
+		caret-color: transparent;
+		color: white;
+		font-weight: normal;
+		outline: none;
+		padding-right: 2px;
+	}
+	.exw-terminal-prompt .terminal-cursor {
+		box-sizing: border-box;
+		position: relative;
+		color: #000;
+		line-height: 20px;
+		font-size: 16px;
+
+		border: 1px solid #fff;
+	}
+	.exw-terminal.blinkOn .exw-terminal-prompt .terminal-cursor {
+		background-color: #fff;
+	}
+	.exw-terminal:not(.blinkOn) .exw-terminal-prompt .terminal-cursor {
+		background-color: rgba(0,0,0,0);
+	}
+
+#exw-terminal-txt1{
+	left: -1000px;
+	position: absolute;
+
+}
+
+
+
+.std-in {
+	box-sizing: border-box;
+	display: inline-block;
+	line-height: 20px;
+	font-size: 16px;
+	text-transform: full-width;
+
+	flex-grow: 0;
+	color: white;
+	font-weight: normal;
+	outline: none;
+}
+.terminal-cursor1 {
+	box-sizing: border-box;
+	display: inline-block;
+	line-height: 20px;
+	font-size: 16px;
+	text-transform: full-width;
+
+	position: absolute !important;
+
+
+	background-color: rgba(255,255,255,.5);
+	border: 0px solid #fff;
+	animation: cursor_blink 1s steps(4, end) infinite;
+}
+@keyframes cursor_blink {
+	0% {
+		background-color:  rgba(255,255,255,.5);
+	}
+	33% {
+		background-color:  rgba(255,255,255,.5);
+	}
+	50% {
+		background-color: rgba(0,0,0,0);
+	}
+	100% {
+		background-color: rgba(0,0,0,0);
+	}
+}
+	</style>
+
+</head>
+<body>
+
+
+<div id="test1" class="exw-terminal blinkOn" style="width: 400px;">
+	<div contenteditable="true" type="text" id="exw-terminal-txt" aria-label="Terminal input" aria-multiline="false" autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0"></div>
+<div class="exw-terminal-prompt" style='background-color: #222425; color: white;'>
+
+	<div class="terminal-cursor2 terminal-cursor1">&nbsp</div>
+</div>
+</div>
+<div id='btn_focus'>focus</div>
+<br><br><br>
+<div id='target1'></div>
+
+
+
+<script src="../lib/exwCommandTerminal.js"></script>
+
+
+
+<script>
+
+var term = new exwCommandTerminal({
+	targetSelector: '#target1',
+	commandPreflight: function(term, cmd){
+			cmd.params.push('nk','jose');
+			return true;
+	},
+});
+
+
+var _this = {
+	state : {
+		running: false,
+	}
+};
+
+var _term = _this;
+_this.element = document.querySelector('#test1');
+_this.textarea = _this.element.querySelector('#exw-terminal-txt');
+_this.promptBarNode = _this.element.querySelector('.exw-terminal-prompt');
+
+_this.cursorNode = _this.promptBarNode.querySelector('.terminal-cursor1');
+_this.cursorNode.style.left = "0px";
+_this.cursorNode.style.top = "0px";
+
+
+
+_this.element.addEventListener('click', (event)=> {
+	//_term.textarea.focus();
+});
+_this.textarea.addEventListener('keydown',(event)=>{
+	_term.handleKeydown(event);
+	//moveIt(_this.textarea.value.length, event)
+});
+_this.textarea.addEventListener('keyup',(event)=>{
+	let keyCode = event.code;
+	if(keyCode == 'ArrowLeft' || keyCode == 'ArrowRight'){
+		_term.syncDisplayCursor();
+	}
+});
+_this.textarea.addEventListener('input',(event)=>{
+	_term.syncText();
+	_term.syncDisplayCursor();
+});
+
+document.querySelector('#btn_focus').addEventListener('click', (event)=>{
+	_term.textarea.focus();
+});
+
+_term.textarea.focus();
+
+_this.focus = function(){
+	_this.textarea.focus();
+};
+
+
+
+
+_this.processText = function(txt){
+	var s = txt.replace(/\n/g, "\\n");
+	return s;
+};
+_this.findRangeForNode = function(node){
+	let sel = document.getSelection();
+	for(let i = 0; i < sel.rangeCount; i++){
+		let range = sel.getRangeAt(i);
+		if(range.intersectsNode(node)) return range;
+	}
+
+	return undefined;
+};
+
+_this.syncTxtCursor = function(){
+	let txt = this.textarea;
+	let div = this.promptBarNode;
+	let stdIn = div.querySelector('.std-in');
+
+	let sel = document.getSelection();
+	if(sel.rangeCount === 0) return;
+	let range = _this.findRangeForNode(stdIn);
+	if(!range){
+		console.log('sorry no sel on stdIn');
+		return;
+	}
+
+
+	if(range.commonAncestorContainer.nodeType == 3){
+		if(range.commonAncestorContainer.parentElement != stdIn) return;
+	}else if(range.commonAncestorContainer != stdIn){
+		return;
+	}
+
+	var s1 = range.startOffset;
+	var s2 = range.endOffset;
+
+	let d;
+	let sRect = stdIn.getBoundingClientRect();
+	let by = sRect.top;
+	let bx = sRect.left;
+
+	let cRect = this.cursorNode.getBoundingClientRect()
+  	let ch = cRect.height;
+  	let cw = cRect.width;
+
+	let rect = range.getBoundingClientRect();
+
+	let sx = rect.right;
+	let sy = rect.top;
+
+
+	console.log('BX=%d RIGHT=%d', bx, sx);
+	console.log('BY=%d TOP=%d', by, sy);
+
+
+	d = (sy > by) ? Math.round((sy - by)/ch) : 0;
+	ct = ch * d;
+
+	d = (sx > bx) ? Math.round((sx - bx)/cw) : 0;
+	cl = cw * d;
+
+	this.cursorNode.style.top = ct + 'px';
+	this.cursorNode.style.left = cl + 'px';
+
+
+	sel.removeAllRanges();
+	txt.focus();
+
+
+
+	range = _this.findRangeForNode(txt);
+	if(range){
+		sel.removeAllRanges();
+	}
+	range = document.createRange();
+
+	if(s1==0){
+		range.selectNode(txt.firstChild);
+		range.collapse(true);
+	}else{
+		range.setStart(txt.firstChild, s1);
+		range.setEnd(txt.firstChild, s2);
+	}
+	sel.addRange(range);
+
+	console.log('S1=%d S2=%d', s1, s2);
+
+};
+
+
+_this.syncDisplayCursor = function(){
+	let txt = this.textarea;
+	let div = this.promptBarNode;
+	let stdIn = div.querySelector('.std-in');
+
+	let sel = document.getSelection();
+
+	txt.focus();
+
+	if(sel.rangeCount === 0) return;
+	let range = sel.getRangeAt(0);
+
+	if(range.commonAncestorContainer.nodeType == 3){
+		if(range.commonAncestorContainer.parentElement != txt) return;
+	}else if(range.commonAncestorContainer != txt){
+		return;
+	}
+
+	var s1 = range.startOffset;
+	var s2 = range.endOffset;
+	console.log('S1=%d S2=%d', s1,s2);
+
+	//sel.removeAllRanges();
+	range = document.createRange();
+
+	range.setStart(stdIn.firstChild, (s1) ? s1-1 : s1);
+	range.setEnd(stdIn.lastChild, s2);
+
+	console.log('range2 %o', range);
+
+	let d;
+	let sRect = stdIn.getBoundingClientRect();
+	let by = sRect.top;
+	let bx = sRect.left;
+
+	let cRect = this.cursorNode.getBoundingClientRect()
+	let ch = cRect.height;
+	let cw = cRect.width;
+
+	let rect = range.getBoundingClientRect();
+
+	let sx = rect.right;
+	let sy = rect.top;
+
+
+	console.log('BX=%d RIGHT=%d', bx, sx);
+	console.log('BY=%d TOP=%d', by, sy);
+
+
+	d = (sy > by) ? Math.round((sy - by)/ch) : 0;
+	ct = ch * d;
+
+	d = (sx > bx) ? Math.round((sx - bx)/cw) : 0;
+	cl = cw * d;
+
+	this.cursorNode.style.top = ct + 'px';
+	this.cursorNode.style.left = cl + 'px';
+
+	//txt.focus();
+};
+_this.syncText = function(){
+	var s = this.textarea.textContent;
+	s = this.processText(s);
+	//console.log('got text');
+	//console.log(s);
+
+	let div = this.promptBarNode;
+
+	let wc = 13, c=-1, r,i, part='', pOffset = 0;
+	let w = div.offsetWidth;
+
+	let wm = Math.floor(w/wc);
+	let pc = Math.ceil(s.length/wm);
+
+	wm = 800;
+	let parts = div.querySelectorAll('.std-in');
+	for(i = pc; i< parts.length; i++){
+		div.removeChild(parts[i]);
+	}
+
+
+	let span = document.createElement('div');
+	span.classList.add('std-in');
+
+	let commitPart = () => {
+		c++;
+		if(parts.length >= c+1){
+			r = parts[c];
+		}else{
+			r = span.cloneNode(true);
+			r.addEventListener('mouseup', (event) =>{
+				console.log('mouseup %o', r);
+				this.syncTxtCursor();
+			});
+			div.insertBefore(r, this.cursorNode);
+		}
+
+		r.setAttribute('tc', c);
+		r.setAttribute('to', pOffset);
+		r.setAttribute('tl', part.length);
+
+		r.textContent = part;
+		part = '';
+	};
+	for(i = 0; i< s.length; i++){
+		part += s.charAt(i);
+		if(part.length == wm){
+			commitPart();
+			pOffset = i+1;
+		}
+	}
+	if(part){
+		commitPart();
+	}
+
+};
+_this.handleKeydown = function(event){
+	let keyCode = event.code;
+
+	if (keyCode == 'KeyC' && event.ctrlKey){
+		//this.closeActiveCommand();
+	}
+
+	if(keyCode == 'Enter'){
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		if(this.state.running) return;
+		_this.syncText();
+		let s = this.commandNode.textContent;
+		term.pushCommand(s);
+
+		return;
+	}
+
+	//_this.syncText();
+
+ };
+
+
+
+
+
+
+term.focus();
+term.j1 = true;
+term.commandRegistry.add('version', function(term, args){
+	console.log(this);
+	this.terminal.write("Verion 1.0\n\tBy \u001b[34mExponential\u001b[32;1mWorks ");
+	this.terminal.write("Test \u001b[4mUnderline \u001b[4;9;3mINVALID\u001b[0;4m test");
+	this.terminal.write("Blink \u001b[36;5m HELLO \u001b[0m Done");
+});
+term.commandRegistry.add('php', {
+	prompt: 'PHP',
+	promptSeparator: ':',
+	v: "Jose",
+	run: function(args){
+		this.terminal.write("Verion 1.0");
+
+		this.terminal.captureInput('Enter Name: ').then((input) => {
+			this.terminal.write('Hi, Your name is ' + input + '!');
+		}, ()=>{
+			this.terminal.write('Ok, no need to be rude!');
+		});
+	},
+	onExit: function(input){
+		this.terminal.write('Bye...');
+		console.log('PHP cleaning up...');
+	},
+	onInput: function(input){
+		if(input == 'quit'){
+			this.done();
+		}
+
+		console.log(this);
+		term.write("Hello " + this.v);
+		//term.write(input);
+
+
+	},
+
+});
+
+
+//document.querySelector('#target1').appendChild(term.getElement());
+
+</script>
+</body>
+</html>
